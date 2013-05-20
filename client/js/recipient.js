@@ -1,8 +1,8 @@
-var DownloadFile = function(file, progressCB) {
+var DownloadFile = function(config, file, progressCB) {
 	var self = this;
 	this.file = file;
-    this.parts = {};
-	this.connect('ws://127.0.0.1:1338');
+    	this.parts = {};
+	this.connect(config.wsServer);
 	this.connection.onopen = function() {
 		self._createFileOnFS(function() {
 			self._downloadFile();

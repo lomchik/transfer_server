@@ -60,7 +60,12 @@
 
         file.download.onclick = function() {
             hide(this);
-            new DownloadFile(fileData, function(status, data) {
+            new DownloadFile(
+                {
+                    wsServer: [config.webSocketServer.host, ':', config.webSocketServer.port].join('')
+                },
+                fileData, 
+                function(status, data) {
                 if (status == 'downloaded') {
                     location.href = data.url;
                 }

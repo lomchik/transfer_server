@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Send File</title>
+    <link rel="stylesheet" href="css/main.css" type="text/css">
+</head>
+<body>
+<div id="b-file">
+    <label for="file-input">Выберите файл для отправки</label>
+    <input id='file-input' type="file">
+</div>
+<div id="b-link" class="hidden">
+    <span>Передайте эту ссылку получателю</span>
+    <a id="file-url" target="_blank"></a>
+</div>
+<div id="b-progress" class="hidden">
+    <span id='progress-sending' class="">Идет отправкка файла:</span>
+    <span id='progress-sent' class="hidden">Файл отправлен</span>
+    <progress id='progress-bar' value="0" max="100"></progress>
+    <span id='progress-text'></span>
+</div>
+
+<script type="text/javascript" src="js/config.js"></script>
+<script type="text/javascript" src="js/sender.js"></script>
+<script type="text/javascript" src="js/common.js"></script>
+<script type="text/javascript">
+    (function(){
+        if (!p2pFileSendEnable()) {
+            document.body.innerHTML = 'Браузер не поддерживает заргрузку частями';
+            return;
+        }
+        var file = {
+                dom: document.getElementById('b-file'),
+                input: document.getElementById('file-input')
+            },
+            link = {
+                dom: document.getElementById('b-link'),
+                url: document.getElementById('file-url'),
+                'set':  function(url) {
+                    this.url.innerHTML = this.url.href = url;
+                    show(this.dom);
+                }
+            },
+            progress = {
+                dom: document.getElementById('b-progress'),
+                bar: document.getElementById('progress-bar'),
+                text: document.getElementById('progress-text'),
+                sending: document.getElementById('progress-sending'),
+                sent: document.getElementById('progress-sent'),
+                'set': function(status, data) {
+                    show(this.dom);
+                    if (data.ready == data.total) {
+                        hide(this.sending, this.bar);
+                        show(this.sent);
+                    }
+                    else {
+                        show(this.sending, this.bar);
+                        hide(this.sent);
+                    }
+                    this.bar.value = data.ready;
+                    this.bar.max = data.total;
+                    this.text.innerText = [data.ready, data.total].join('/');
+                }
+            };
+
+        file.input.onchange = function() {
+            new SendFile(
+                    {
+                        wsServer: [config.webSocketServer.host, ':', config.webSocketServer.port].join(''),
+                        sliceSize: config.sliceSize
+                    },
+                    this.files[0],
+                    function(url) {
+                        hide(file.dom)
+                        link.set(url);
+                    },
+                    function(status, data) {
+                        progress.set(status, data);
+                    }
+            );
+            hide(file.dom);
+        };
+    })();
+</script>
+</body>
+</html>
